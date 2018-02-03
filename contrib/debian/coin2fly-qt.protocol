@@ -1,0 +1,11 @@
+[Protocol]
+exec=coin2fly-qt '%u'
+protocol=coin2fly
+input=none
+output=none
+helper=true
+listing=
+reading=false
+writing=false
+makedir=false
+deleting=false

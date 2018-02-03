@@ -1,0 +1,6 @@
+usr/local/bin/coin2fly-qt usr/bin
+share/pixmaps/coin2fly32.xpm usr/share/pixmaps
+share/pixmaps/coin2fly16.xpm usr/share/pixmaps
+share/pixmaps/coin2fly128.png usr/share/pixmaps
+debian/coin2fly-qt.desktop usr/share/applications
+debian/coin2fly-qt.protocol usr/share/kde4/services/

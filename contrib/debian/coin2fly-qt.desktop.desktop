@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Coin2Fly
+Comment=Coin2Fly P2P Cryptocurrency
+Exec=coin2fly-qt %u
+Terminal=false
+Type=Application
+Icon=coin2fly128
+MimeType=x-scheme-handler/coin2fly;
+Categories=Office;Finance;
+Name[en_US]=coin2fly-qt.desktop

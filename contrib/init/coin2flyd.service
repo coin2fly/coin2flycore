@@ -1,0 +1,22 @@
+[Unit]
+Description=Coin2Fly's distributed currency daemon
+After=network.target
+
+[Service]
+User=coin2flycore
+Group=coin2flycore
+
+Type=forking
+PIDFile=/var/lib/coin2flyd/coin2flyd.pid
+ExecStart=/usr/bin/coin2flyd -daemon -pid=/var/lib/coin2flyd/coin2flyd.pid \
+-conf=/etc/coin2flycore/coin2fly.conf -datadir=/var/lib/coin2flyd -disablewallet
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
