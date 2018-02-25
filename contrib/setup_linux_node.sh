@@ -114,7 +114,7 @@ function download_unpack_install {
 	cat <<- EOF > /usr/local/bin/"$daemon"
 	#!/bin/bash
 	if (( EUID == 0 )); then
-		echo "Please do not run the daemon as root. I will run it as the proper user for you. Consider switching to the user with""$twbg$tred" sudo -i $node_user $treset next time."
+		echo "Please do not run the daemon as root. I will run it as the proper user for you. Consider switching to the user with ""$twbg$tred""sudo -i $node_user$treset next time."
 		if (( $# == 0 )); then
 			exec su - $node_user -c "/usr/bin/$daemon"
 		else
