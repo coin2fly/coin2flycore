@@ -13,6 +13,10 @@ node_user="coin2fly"
 mainnet="12225"
 disablewallet="-disablewallet"
 
+# this variable is used to keep track of the upgrades to our environment
+checkpoint="20180227"
+installer_checkpoint="/home/$node_user/$core_dir/.installer_checkpoint"
+
 # other variables
 DISTRO=$(lsb_release -s -c)
 
@@ -109,23 +113,45 @@ function download_unpack_install {
 
 	# making sure the files have the correct permission, maybe someone cross-compiled and moved to a non-posix filesystem
 	chmod +x /usr/bin/{"$daemon","$cli"}
-	
+
 	# setting up wrappers so the user never calls the binary directly as root
 	cat <<- EOF > /usr/local/bin/"$daemon"
 	#!/bin/bash
+	
+	echo -e "\n"
+	echo -e "Please$tred do not$treset run the daemon manually. Use$tyellow systemctl start $daemon$treset as$tred root$treset to start it (or$tgreen restart$treset)."
+	echo -e "\n"
+	
 	if (( EUID == 0 )); then
-		echo "Please do not run the daemon as root. I will run it as the proper user for you. Consider switching to the user with ""$twbg$tred""sudo -i $node_user$treset next time."
-		if (( $# == 0 )); then
+	
+		if [[ "\$@" =~ "reindex" ]]; then
+			echo "It seems that you are trying to reindex the blockchain database. Please use$tyellow systemctl start $daemon-reindex$treset to do this."
+			echo "I will do this for you this time."
+			exec systemctl start $daemon-reindex
+			exit 0
+		fi
+		
+		echo "Please do not attempt to run the daemon as$tred root$treset. Switch to the $tgreen$node_user$treset user with:$tyellow su - $node_user$treset."
+		
+		if (( \$# == 0 )); then
 			exec su - $node_user -c "/usr/bin/$daemon"
 		else
 			printf -v string '%q ' "\$@"; exec su - $node_user -c "/usr/bin/$daemon \$string"
 		fi
+		
 	else
-		if (( $# == 0 )); then
+	
+		if (( $(pidof $daemon) )); then
+			echo "$tcyan$daemon is already running."
+			exit 1
+		fi
+		
+		if (( \$# == 0 )); then
 			exec /usr/bin/$daemon
 		else
 			printf -v string '%q ' "\$@"; exec /usr/bin/$daemon "\$string"
 		fi
+		
 	fi
 	EOF
 	
@@ -225,6 +251,30 @@ function create_systemd_unit {
 	Type=forking
 	ExecStart=/usr/bin/$daemon -daemon $disablewallet
 	ExecStop=/usr/bin/$cli $stopcli
+	OnFailure=$daemon-reindex.service
+	Restart=always
+	TimeoutStopSec=60s
+	TimeoutStartSec=30s
+	StartLimitInterval=120s
+	StartLimitBurst=5
+	
+	[Install]
+	WantedBy=multi-user.target
+	EOF
+	
+	cat <<- EOF > /lib/systemd/system/"$daemon"-reindex.service
+	[Unit]
+	Description=$daemon's reindex
+	After=network.target
+	OnFailure=$daemon.service
+	Conflicts=$daemon.service
+	
+	[Service]
+	User=$node_user
+	Group=$node_user
+	Type=forking
+	ExecStart=/usr/bin/$daemon -daemon -reindex $disablewallet
+	ExecStop=/usr/bin/$cli $stopcli
 	Restart=always
 	TimeoutStopSec=60s
 	TimeoutStartSec=30s
@@ -277,6 +327,9 @@ else
 	crontab -l -u "$node_user" | { cat; echo "@reboot /usr/bin/$daemon -reindex $disablewallet" ;} | crontab -u "$node_user" -
 	su - "$node_user" -c "/usr/bin/$daemon -reindex $disablewallet"
 fi
+
+# set checkpoint
+echo "$checkpoint" > "$installer_checkpoint"
 
 echo -e "\n"
 echo -e "Masternode setup is done on this side. You should go back to your Wallet and add this line to your$tgreen masternode.conf$reset file:\n"
