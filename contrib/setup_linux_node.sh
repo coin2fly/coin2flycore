@@ -19,6 +19,7 @@ installer_checkpoint="/home/$node_user/$core_dir/.installer_checkpoint"
 
 # other variables
 DISTRO=$(lsb_release -s -c)
+DEBIAN_FRONTEND=noninteractive
 
 # environment setup, make it pretty
 tred=$(tput setaf 1); tgreen=$(tput setaf 2); tyellow=$(tput setaf 3); tblue=$(tput setaf 4); tmagenta=$(tput setaf 5); tcyan=$(tput setaf 6); treset=$(tput sgr0); tclear=$(tput clear); twbg=$(tput setab 7)
@@ -63,8 +64,8 @@ function randpw {
 function do_updates {
 	echo -e "Bringing your system up2date."
 	apt update
-	apt upgrade -y
-	apt install -y python-virtualenv virtualenv git
+	apt upgrade -yq
+	apt install -yq python-virtualenv virtualenv git
 }
 
 function do_swap {
