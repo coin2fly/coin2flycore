@@ -64,8 +64,8 @@ function randpw {
 function do_updates {
 	echo -e "Bringing your system up2date."
 	apt update
-	apt upgrade -yq
-	apt install -yq python-virtualenv virtualenv git
+	DEBIAN_FRONTEND=noninteractive apt upgrade -yq
+	DEBIAN_FRONTEND=noninteractive apt install -yq python-virtualenv virtualenv git
 }
 
 function do_swap {
