@@ -1,4 +1,4 @@
-Coin2Fly Core staging tree 0.12.1.4
+Coin2Fly Core staging tree 0.12.1.5
 ===============================
 
 https://www.coin2fly.com
