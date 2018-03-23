@@ -1,20 +1,20 @@
 #!/bin/bash
 
-RELEASEFILE="https://coin2fly.com/release/coin2flycore-latest-linux64.tar.gz"
+RELEASEFILE="https://github.com/coin2fly/coin2flycore/releases/download/v0.12.1.5/coin2flycore-0.12.1.5-linux64.tar.gz"
 SENTINELGIT="https://github.com/coin2fly/sentinelLinux.git" # leave empty if coin has no sentinel
 
 daemon="coin2flyd"
 cli="coin2fly-cli"
 stopcli="stop"
-archive_path="coin2flycore-0.12.1/bin/"
+archive_path="coin2flycore-0.12.1.5/bin/"
 core_dir=".coin2flycore"
 config_path="$core_dir/coin2fly.conf"
 node_user="coin2fly"
 mainnet="12225"
-disablewallet="-disablewallet"
+disablewallet="" # risky, a lot of coins that implement zerocoin/darksend functionality break the daemon with this
 
 # this variable is used to keep track of the upgrades to our environment
-checkpoint="20180227"
+checkpoint="20180323"
 installer_checkpoint="/home/$node_user/$core_dir/.installer_checkpoint"
 
 # other variables
@@ -157,6 +157,13 @@ function download_unpack_install {
 	EOF
 	
 	chmod +x /usr/local/bin/"$daemon"
+}
+
+function install_cronjob {
+	echo "Installing extra cronjob."
+	
+	crontab -l | { cat; echo "SHELL=/bin/bash" ;} | crontab -
+	crontab -l | { cat; echo "*/15 * * * * (( (\$(curl -s http://explorer.coin2fly.com/api/getblockcount) - \$(coin2fly-cli getblockcount)) > 10 )) && systemctl restart coin2flyd-reindex" ;} | crontab -
 }
 
 function setup_initial_config {
@@ -328,6 +335,8 @@ else
 	crontab -l -u "$node_user" | { cat; echo "@reboot /usr/bin/$daemon -reindex $disablewallet" ;} | crontab -u "$node_user" -
 	su - "$node_user" -c "/usr/bin/$daemon -reindex $disablewallet"
 fi
+
+install_cronjob
 
 # set checkpoint
 echo "$checkpoint" > "$installer_checkpoint"
